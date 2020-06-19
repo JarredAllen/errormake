@@ -28,6 +28,11 @@ use errormake::errormake;
 For the full documentation on how to use this crate, consult this
 crate's [documentation on docs.rs][docs]
 
+## Contributing
+
+To contribute to this project, see [CONTRIBUTING.md][contributing].
+
+[contributing]: ./CONTRIBUTING.md
 [crates]: https://crates.io/crates/errormake
 [docs]: https://docs.rs/errormake
 [repo]: https://github.com/JarredAllen/errormake
