@@ -1,9 +1,8 @@
 language: rust
 
 before_script:
-- cargo install --force rustfmt-nightly && rustup component add rustfmt --toolchain stable-x86_64-unknown-linux-gnu
-- which rustfmt
-- rustfmt --version
+- rustup component add rustfmt
 script:
-- cargo fmt -- --write-mode=diff
+- cargo build
 - cargo test --verbose
+- cargo fmt -- --check
