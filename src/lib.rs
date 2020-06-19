@@ -8,6 +8,7 @@
 //! # Example
 //!
 //! ```
+//! #![feature(never_type)]
 //! use errormake::errormake;
 //!
 //! errormake!(pub ExampleError);
@@ -24,6 +25,8 @@
 //! }
 //! ```
 
+#![feature(never_type)]
+
 #[macro_export]
 /// The macro used to generate basic Error structs.
 ///
@@ -33,8 +36,8 @@ macro_rules! errormake {
     ($structname:ident) => {
         /// An error struct automatically created by `errormake`
         #[derive(Debug)]
-        struct $structname {
-            source: Option<Box<dyn std::error::Error + 'static>>,
+        struct $structname<T: std::error::Error + 'static> {
+            source: Option<Box<T>>,
             description: Option<String>,
         }
 
@@ -43,8 +46,8 @@ macro_rules! errormake {
     (pub $structname:ident) => {
         /// An error struct automatically created by `errormake`
         #[derive(Debug)]
-        pub struct $structname {
-            source: Option<Box<dyn std::error::Error + 'static>>,
+        pub struct $structname<T: std::error::Error + 'static> {
+            source: Option<Box<T>>,
             description: Option<String>,
         }
 
@@ -52,9 +55,9 @@ macro_rules! errormake {
     };
     (impl $structname:ident) => {
         #[allow(dead_code)]
-        impl $structname {
+        impl $structname<!> {
             /// Instantiate with no source or description
-            pub fn new() -> $structname {
+            pub fn new() -> $structname<!> {
                 $structname {
                     source: None,
                     description: None,
@@ -62,28 +65,31 @@ macro_rules! errormake {
             }
 
             /// Instantiate with the given description and no source
-            pub fn with_description(description: String) -> $structname {
+            pub fn with_description(description: String) -> $structname<!> {
                 $structname {
                     source: None,
                     description: Some(description),
                 }
             }
+        }
 
+        #[allow(dead_code)]
+        impl<T: std::error::Error + 'static> $structname<T> {
             /// Instantiate with the given source and no description
-            pub fn with_source(source: Box<dyn std::error::Error + 'static>) -> $structname {
+            pub fn with_source(source: T) -> $structname<T> {
                 $structname {
-                    source: Some(source),
+                    source: Some(Box::new(source)),
                     description: None,
                 }
             }
 
             /// Instantiate with the given source and description
             pub fn with_source_and_description(
-                source: Box<dyn std::error::Error + 'static>,
+                source: T,
                 description: String,
-            ) -> $structname {
+            ) -> $structname<T> {
                 $structname {
-                    source: Some(source),
+                    source: Some(Box::new(source)),
                     description: Some(description),
                 }
             }
@@ -91,9 +97,9 @@ macro_rules! errormake {
             /// Instantiate with optional source and description
             /// determined by the arguments
             pub fn with_optional_data(
-                source: Option<Box<dyn std::error::Error + 'static>>,
+                source: Option<Box<T>>,
                 description: Option<String>,
-            ) -> $structname {
+            ) -> $structname<T> {
                 $structname {
                     source,
                     description,
@@ -101,7 +107,7 @@ macro_rules! errormake {
             }
         }
 
-        impl std::fmt::Display for $structname {
+        impl<T: std::error::Error + 'static> std::fmt::Display for $structname<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match &self.source {
                     Some(source) => write!(
@@ -123,9 +129,9 @@ macro_rules! errormake {
             }
         }
 
-        impl std::error::Error for $structname {
+        impl<T: std::error::Error + 'static> std::error::Error for $structname<T> {
             fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-                self.source.as_ref().map(|err| err.as_ref())
+                self.source.as_ref().map(|err| err.as_ref() as &(dyn std::error::Error + 'static))
             }
         }
     };
