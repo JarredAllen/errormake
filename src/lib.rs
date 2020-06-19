@@ -2,31 +2,28 @@ macro_rules! errormake_impls {
     ($structname:ident) => {
         #[allow(dead_code)]
         impl $structname {
-            /// Create a $structname with no source or description
+            /// Instantiate with no source or description
             pub fn new() -> $structname {
                 $structname { source: None, description: None }
             }
             
-            /// Create a $structname with the given description and no
-            /// source
+            /// Instantiate with the given description and no source
             pub fn with_description(description: String) -> $structname {
                 $structname { source: None, description: Some(description) }
             }
 
-            /// Create a $structname with the given source and no
-            /// description
+            /// Instantiate with the given source and no description
             pub fn with_source(source: Box<dyn std::error::Error + 'static>) -> $structname {
                 $structname { source: Some(source), description: None }
             }
 
-            /// Create a $structname with the given source and
-            /// description
+            /// Instantiate with the given source and description
             pub fn with_source_and_description(source: Box<dyn std::error::Error + 'static>, description: String) -> $structname {
                 $structname { source: Some(source), description: Some(description) }
             }
 
-            /// Create a $structname with optional source and
-            /// description determined by the arguments
+            /// Instantiate with optional source and description
+            /// determined by the arguments
             pub fn with_optional_data(source: Option<Box<dyn std::error::Error + 'static>>, description: Option<String>) -> $structname {
                 $structname { source, description }
             }
@@ -57,6 +54,7 @@ macro_rules! errormake_impls {
 #[macro_export]
 macro_rules! errormake {
     ($structname:ident) => {
+        /// An error struct automatically created by `errormake`
         #[derive(Debug)]
         struct $structname {
             source: Option<Box<dyn std::error::Error + 'static>>,
@@ -66,6 +64,7 @@ macro_rules! errormake {
         errormake_impls!($structname);
     };
     (pub $structname:ident) => {
+        /// An error struct automatically created by `errormake`
         #[derive(Debug)]
         pub struct $structname {
             source: Option<Box<dyn std::error::Error + 'static>>,
