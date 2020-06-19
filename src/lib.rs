@@ -32,9 +32,9 @@
 macro_rules! errormake {
     ($structname:ident) => {
         /// An error struct automatically created by `errormake`
-        #[derive(Debug)]
-        struct $structname {
-            source: Option<Box<dyn std::error::Error + 'static>>,
+        #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+        struct $structname<T: std::error::Error + 'static> {
+            source: Option<Box<T>>,
             description: Option<String>,
         }
 
@@ -42,9 +42,9 @@ macro_rules! errormake {
     };
     (pub $structname:ident) => {
         /// An error struct automatically created by `errormake`
-        #[derive(Debug)]
-        pub struct $structname {
-            source: Option<Box<dyn std::error::Error + 'static>>,
+        #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+        pub struct $structname<T: std::error::Error + 'static> {
+            source: Option<Box<T>>,
             description: Option<String>,
         }
 
@@ -52,9 +52,9 @@ macro_rules! errormake {
     };
     (impl $structname:ident) => {
         #[allow(dead_code)]
-        impl $structname {
+        impl $structname<std::convert::Infallible> {
             /// Instantiate with no source or description
-            pub fn new() -> $structname {
+            pub fn new() -> $structname<std::convert::Infallible> {
                 $structname {
                     source: None,
                     description: None,
@@ -62,28 +62,28 @@ macro_rules! errormake {
             }
 
             /// Instantiate with the given description and no source
-            pub fn with_description(description: String) -> $structname {
+            pub fn with_description(description: String) -> $structname<std::convert::Infallible> {
                 $structname {
                     source: None,
                     description: Some(description),
                 }
             }
+        }
 
+        #[allow(dead_code)]
+        impl<T: std::error::Error + 'static> $structname<T> {
             /// Instantiate with the given source and no description
-            pub fn with_source(source: Box<dyn std::error::Error + 'static>) -> $structname {
+            pub fn with_source(source: T) -> $structname<T> {
                 $structname {
-                    source: Some(source),
+                    source: Some(Box::new(source)),
                     description: None,
                 }
             }
 
             /// Instantiate with the given source and description
-            pub fn with_source_and_description(
-                source: Box<dyn std::error::Error + 'static>,
-                description: String,
-            ) -> $structname {
+            pub fn with_source_and_description(source: T, description: String) -> $structname<T> {
                 $structname {
-                    source: Some(source),
+                    source: Some(Box::new(source)),
                     description: Some(description),
                 }
             }
@@ -91,9 +91,9 @@ macro_rules! errormake {
             /// Instantiate with optional source and description
             /// determined by the arguments
             pub fn with_optional_data(
-                source: Option<Box<dyn std::error::Error + 'static>>,
+                source: Option<Box<T>>,
                 description: Option<String>,
-            ) -> $structname {
+            ) -> $structname<T> {
                 $structname {
                     source,
                     description,
@@ -101,7 +101,7 @@ macro_rules! errormake {
             }
         }
 
-        impl std::fmt::Display for $structname {
+        impl<T: std::error::Error + 'static> std::fmt::Display for $structname<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match &self.source {
                     Some(source) => write!(
@@ -123,9 +123,11 @@ macro_rules! errormake {
             }
         }
 
-        impl std::error::Error for $structname {
+        impl<T: std::error::Error + 'static> std::error::Error for $structname<T> {
             fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-                self.source.as_ref().map(|err| err.as_ref())
+                self.source
+                    .as_ref()
+                    .map(|err| err.as_ref() as &(dyn std::error::Error + 'static))
             }
         }
     };
@@ -163,5 +165,19 @@ mod tests {
         );
         assert_eq!("TestingError: Custom error message\n\nThe above error caused the following error:\n\nTestingError: Another message", format!("{}", error4));
         assert!(error4.source().is_some());
+    }
+
+    #[test]
+    fn test_derives() {
+        let error1 = TestingError::new();
+        assert_eq!(error1, error1.clone());
+        let error2 = TestingError::with_source(error1.clone());
+        assert_eq!(error2, error2.clone());
+        assert_eq!(error2, error2);
+        let error3 =
+            TestingError::with_source_and_description(error1.clone(), String::from("description"));
+        assert_ne!(error3, error2);
+        let error4 = TestingError::with_description(String::from("description"));
+        assert_ne!(error1, error4);
     }
 }
