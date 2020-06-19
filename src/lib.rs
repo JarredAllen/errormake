@@ -1,5 +1,56 @@
-macro_rules! errormake_impls {
+//! A macro for automatically generating structs which implement the
+//! `Error` trait from `std::error`.
+//!
+//! The `errormake!` macro generates a struct which implements an error
+//! and may optionally contain a description and/or a source error. The
+//! resulting struct may be either public or private to the module.
+//!
+//! # Example
+//! 
+//! ```
+//! use errormake::errormake;
+//!
+//! errormake!(pub ExampleError);
+//!
+//! fn main() {
+//!     // Create an error with no description or source
+//!     let error1 = ExampleError::new();
+//!     // Create an error with a description, but no source
+//!     let error2 = ExampleError::with_description(String::from("Error description"));
+//!     // Create an error with a source, but no description
+//!     let error3 = ExampleError::with_source(Box::new(error1));
+//!     // Create an error with a source and a description
+//!     let error4 = ExampleError::with_source_and_description(Box::new(error3), String::from("Error description"));
+//! }
+//! ```
+
+#[macro_export]
+/// The macro used to generate basic Error structs.
+///
+/// See the [crate docs](../errormake/index.html) for the full
+/// documentation.
+macro_rules! errormake {
     ($structname:ident) => {
+        /// An error struct automatically created by `errormake`
+        #[derive(Debug)]
+        struct $structname {
+            source: Option<Box<dyn std::error::Error + 'static>>,
+            description: Option<String>,
+        }
+
+        errormake!(impl $structname);
+    };
+    (pub $structname:ident) => {
+        /// An error struct automatically created by `errormake`
+        #[derive(Debug)]
+        pub struct $structname {
+            source: Option<Box<dyn std::error::Error + 'static>>,
+            description: Option<String>,
+        }
+
+        errormake!(impl $structname);
+    };
+    (impl $structname:ident) => {
         #[allow(dead_code)]
         impl $structname {
             /// Instantiate with no source or description
@@ -48,30 +99,6 @@ macro_rules! errormake_impls {
                 self.source.as_ref().map(|err| err.as_ref())
             }
         }
-    }
-}
-
-#[macro_export]
-macro_rules! errormake {
-    ($structname:ident) => {
-        /// An error struct automatically created by `errormake`
-        #[derive(Debug)]
-        struct $structname {
-            source: Option<Box<dyn std::error::Error + 'static>>,
-            description: Option<String>,
-        }
-
-        errormake_impls!($structname);
-    };
-    (pub $structname:ident) => {
-        /// An error struct automatically created by `errormake`
-        #[derive(Debug)]
-        pub struct $structname {
-            source: Option<Box<dyn std::error::Error + 'static>>,
-            description: Option<String>,
-        }
-
-        errormake_impls!($structname);
     }
 }
 
