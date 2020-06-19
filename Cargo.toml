@@ -3,6 +3,10 @@ name = "errormake"
 version = "0.1.0"
 authors = ["JarredAllen <jarredallen73@gmail.com>"]
 edition = "2018"
+license = "MIT OR Apache-2.0"
+description = "A macro for automatically creating Error structs"
+repository = "https://github.com/JarredAllen/errormake"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
