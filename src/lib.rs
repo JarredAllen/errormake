@@ -32,7 +32,7 @@
 macro_rules! errormake {
     ($structname:ident) => {
         /// An error struct automatically created by `errormake`
-        #[derive(Clone,Debug,Eq,Hash,PartialEq)]
+        #[derive(Clone, Debug, Eq, Hash, PartialEq)]
         struct $structname<T: std::error::Error + 'static> {
             source: Option<Box<T>>,
             description: Option<String>,
@@ -42,7 +42,7 @@ macro_rules! errormake {
     };
     (pub $structname:ident) => {
         /// An error struct automatically created by `errormake`
-        #[derive(Clone,Debug,Eq,Hash,PartialEq)]
+        #[derive(Clone, Debug, Eq, Hash, PartialEq)]
         pub struct $structname<T: std::error::Error + 'static> {
             source: Option<Box<T>>,
             description: Option<String>,
@@ -174,7 +174,8 @@ mod tests {
         let error2 = TestingError::with_source(error1.clone());
         assert_eq!(error2, error2.clone());
         assert_eq!(error2, error2);
-        let error3 = TestingError::with_source_and_description(error1.clone(), String::from("description"));
+        let error3 =
+            TestingError::with_source_and_description(error1.clone(), String::from("description"));
         assert_ne!(error3, error2);
         let error4 = TestingError::with_description(String::from("description"));
         assert_ne!(error1, error4);
