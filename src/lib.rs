@@ -8,7 +8,6 @@
 //! # Example
 //!
 //! ```
-//! #![feature(never_type)]
 //! use errormake::errormake;
 //!
 //! errormake!(pub ExampleError);
@@ -24,8 +23,6 @@
 //!     let error4 = ExampleError::with_source_and_description(Box::new(error3), String::from("Error description"));
 //! }
 //! ```
-
-#![feature(never_type)]
 
 #[macro_export]
 /// The macro used to generate basic Error structs.
@@ -55,9 +52,9 @@ macro_rules! errormake {
     };
     (impl $structname:ident) => {
         #[allow(dead_code)]
-        impl $structname<!> {
+        impl $structname<std::convert::Infallible> {
             /// Instantiate with no source or description
-            pub fn new() -> $structname<!> {
+            pub fn new() -> $structname<std::convert::Infallible> {
                 $structname {
                     source: None,
                     description: None,
@@ -65,7 +62,7 @@ macro_rules! errormake {
             }
 
             /// Instantiate with the given description and no source
-            pub fn with_description(description: String) -> $structname<!> {
+            pub fn with_description(description: String) -> $structname<std::convert::Infallible> {
                 $structname {
                     source: None,
                     description: Some(description),
@@ -84,10 +81,7 @@ macro_rules! errormake {
             }
 
             /// Instantiate with the given source and description
-            pub fn with_source_and_description(
-                source: T,
-                description: String,
-            ) -> $structname<T> {
+            pub fn with_source_and_description(source: T, description: String) -> $structname<T> {
                 $structname {
                     source: Some(Box::new(source)),
                     description: Some(description),
@@ -131,7 +125,9 @@ macro_rules! errormake {
 
         impl<T: std::error::Error + 'static> std::error::Error for $structname<T> {
             fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-                self.source.as_ref().map(|err| err.as_ref() as &(dyn std::error::Error + 'static))
+                self.source
+                    .as_ref()
+                    .map(|err| err.as_ref() as &(dyn std::error::Error + 'static))
             }
         }
     };
