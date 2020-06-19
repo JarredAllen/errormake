@@ -32,7 +32,7 @@
 macro_rules! errormake {
     ($structname:ident) => {
         /// An error struct automatically created by `errormake`
-        #[derive(Debug)]
+        #[derive(Clone,Debug,Eq,Hash,PartialEq)]
         struct $structname<T: std::error::Error + 'static> {
             source: Option<Box<T>>,
             description: Option<String>,
@@ -42,7 +42,7 @@ macro_rules! errormake {
     };
     (pub $structname:ident) => {
         /// An error struct automatically created by `errormake`
-        #[derive(Debug)]
+        #[derive(Clone,Debug,Eq,Hash,PartialEq)]
         pub struct $structname<T: std::error::Error + 'static> {
             source: Option<Box<T>>,
             description: Option<String>,
@@ -165,5 +165,18 @@ mod tests {
         );
         assert_eq!("TestingError: Custom error message\n\nThe above error caused the following error:\n\nTestingError: Another message", format!("{}", error4));
         assert!(error4.source().is_some());
+    }
+
+    #[test]
+    fn test_derives() {
+        let error1 = TestingError::new();
+        assert_eq!(error1, error1.clone());
+        let error2 = TestingError::with_source(error1.clone());
+        assert_eq!(error2, error2.clone());
+        assert_eq!(error2, error2);
+        let error3 = TestingError::with_source_and_description(error1.clone(), String::from("description"));
+        assert_ne!(error3, error2);
+        let error4 = TestingError::with_description(String::from("description"));
+        assert_ne!(error1, error4);
     }
 }
