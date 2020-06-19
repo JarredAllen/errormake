@@ -35,7 +35,7 @@ macro_rules! errormake_impls {
                     Some(source) => write!(f, "{}\n\nThe above error caused the following error:\n\n", source)?,
                     None => {},
                 }
-                write!(f, "{}: {}", stringify!($structname), match self.description.as_ref() {
+                write!(f, concat!(stringify!($structname), ": {}"), match self.description.as_ref() {
                     Some(description) => description,
                     None => "No description provided",
                 })?;
