@@ -1,8 +1,7 @@
 language: rust
 
 before_script:
-- which rustfmt || cargo install rustfmt-nightly
-
+- which rustfmt || rustup component add rustfmt
 script:
 - cargo fmt -- --write-mode=diff
 - cargo test --verbose
