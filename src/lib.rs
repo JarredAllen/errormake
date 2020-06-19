@@ -59,3 +59,21 @@ macro_rules! errormake {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::errormake;
+    use std::error::Error;
+
+    errormake!(TestingError);
+
+    #[test]
+    fn test_stable() {
+        let error1 = TestingError::new();
+        assert_eq!("TestingError: No description provided", format!("{}", error1));
+        assert!(error1.source().is_none());
+        let error2 = TestingError::with_description(String::from("Custom error message"));
+        assert_eq!("TestingError: Custom error message", format!("{}", error2));
+        assert!(error2.source().is_none());
+    }
+}
