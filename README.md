@@ -4,6 +4,7 @@ errormake
 [![Crates.io Page](https://img.shields.io/crates/v/errormake.svg)][crates]
 [![Docs.rs Page](https://docs.rs/errormake/badge.svg)][docs]
 ![License](https://img.shields.io/crates/l/errormake.svg)
+[![Travis CI Status](https://api.travis-ci.com/JarredAllen/errormake.svg?branch=master)][travis]
 
 A macro for automatically creating Error structs in Rust
 
@@ -30,3 +31,4 @@ crate's [documentation on docs.rs][docs]
 [crates]: https://crates.io/crates/errormake
 [docs]: https://docs.rs/errormake
 [repo]: https://github.com/JarredAllen/errormake
+[travis]: https://travis-ci.com/github/JarredAllen/errormake
