@@ -12,16 +12,14 @@
 //!
 //! errormake!(pub ExampleError);
 //!
-//! fn main() {
-//!     // Create an error with no description or source
-//!     let error1 = ExampleError::new();
-//!     // Create an error with a description, but no source
-//!     let error2 = ExampleError::with_description(String::from("Error description"));
-//!     // Create an error with a source, but no description
-//!     let error3 = ExampleError::with_source(Box::new(error1));
-//!     // Create an error with a source and a description
-//!     let error4 = ExampleError::with_source_and_description(Box::new(error3), String::from("Error description"));
-//! }
+//! // Create an error with no description or source
+//! let error1 = ExampleError::new();
+//! // Create an error with a description, but no source
+//! let error2 = ExampleError::with_description(String::from("Error description"));
+//! // Create an error with a source, but no description
+//! let error3 = ExampleError::with_source(Box::new(error1));
+//! // Create an error with a source and a description
+//! let error4 = ExampleError::with_source_and_description(Box::new(error3), String::from("Error description"));
 //! ```
 
 #[macro_export]
@@ -32,7 +30,7 @@
 macro_rules! errormake {
     ($structname:ident) => {
         /// An error struct automatically created by `errormake`
-        #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+        #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
         struct $structname<T: std::error::Error + 'static> {
             source: Option<Box<T>>,
             description: Option<String>,
@@ -42,7 +40,7 @@ macro_rules! errormake {
     };
     (pub $structname:ident) => {
         /// An error struct automatically created by `errormake`
-        #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+        #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
         pub struct $structname<T: std::error::Error + 'static> {
             source: Option<Box<T>>,
             description: Option<String>,

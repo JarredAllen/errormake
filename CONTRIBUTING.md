@@ -50,6 +50,7 @@ In testing, Travis CI runs the following sequence of commands:
 cargo build
 cargo test --verbose
 cargo fmt -- --check
+cargo clippy -- -D warnings
 ```
 You can run those commands locally on your machine to verify that all tests
 pass.
