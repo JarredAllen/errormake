@@ -40,7 +40,7 @@
 macro_rules! errormake {
     ($structname:ident) => {
         #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
-        struct $structname<T: std::error::Error + 'static> {
+        struct $structname<T: ?Sized + 'static> {
             source: Option<Box<T>>,
             description: Option<String>,
         }
@@ -50,7 +50,7 @@ macro_rules! errormake {
     ($(#[$meta:meta])* pub $structname:ident) => {
         $(#[$meta])*
         #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
-        pub struct $structname<T: std::error::Error + 'static> {
+        pub struct $structname<T: ?Sized + 'static> {
             source: Option<Box<T>>,
             description: Option<String>,
         }
@@ -78,7 +78,7 @@ macro_rules! errormake {
         }
 
         #[allow(dead_code)]
-        impl<T: std::error::Error + 'static> $structname<T> {
+        impl<T: 'static> $structname<T> {
             /// Instantiate with the given source and no description
             pub fn with_source(source: T) -> $structname<T> {
                 $structname {
@@ -94,7 +94,10 @@ macro_rules! errormake {
                     description: Some(description),
                 }
             }
+        }
 
+        #[allow(dead_code)]
+        impl<T: ?Sized + 'static> $structname<T> {
             /// Instantiate with optional source and description
             /// determined by the arguments
             pub fn with_optional_data(
@@ -108,7 +111,18 @@ macro_rules! errormake {
             }
         }
 
-        impl<T: std::error::Error + 'static> std::fmt::Display for $structname<T> {
+        #[allow(dead_code)]
+        impl<T: std::error::Error + 'static> $structname<T> {
+            /// Convert source to a boxed dynamic error object
+            pub fn to_dynamic(self) -> $structname<dyn std::error::Error + 'static> {
+                $structname {
+                    source: self.source.map(|source| source as Box<dyn std::error::Error + 'static>),
+                    description: self.description,
+                }
+            }
+        }
+
+        impl<T: std::fmt::Display + ?Sized + 'static> std::fmt::Display for $structname<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match &self.source {
                     Some(source) => write!(
@@ -130,11 +144,21 @@ macro_rules! errormake {
             }
         }
 
-        impl<T: std::error::Error + 'static> std::error::Error for $structname<T> {
+        impl<T> std::error::Error for $structname<T>
+            where T: std::error::Error + 'static
+        {
             fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
                 self.source
                     .as_ref()
                     .map(|err| err.as_ref() as &(dyn std::error::Error + 'static))
+            }
+        }
+
+        impl std::error::Error for $structname<dyn std::error::Error + 'static> {
+            fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+                self.source
+                    .as_ref()
+                    .map(|err| err.as_ref())
             }
         }
     };
@@ -186,5 +210,16 @@ mod tests {
         assert_ne!(error3, error2);
         let error4 = TestingError::with_description(String::from("description"));
         assert_ne!(error1, error4);
+    }
+
+    #[test]
+    fn test_dynamic() {
+        // Test two ways of making the type parameter dynamic
+        let error = TestingError::new();
+        let error = TestingError::with_source(error).to_dynamic();
+        assert!(error.source().is_some());
+        let box_error: Box<dyn Error + 'static> = Box::new(error);
+        let error = TestingError::with_optional_data(Some(box_error), None);
+        assert!(error.source().is_some());
     }
 }
