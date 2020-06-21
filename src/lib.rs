@@ -5,8 +5,7 @@
 //! and may optionally contain a description and/or a source error. The
 //! resulting struct may be either public or private to the module.
 //!
-//! # Example
-//!
+//! Here is an example of using some of its functionality:
 //! ```
 //! use errormake::errormake;
 //!
@@ -21,6 +20,17 @@
 //! // Create an error with a source and a description
 //! let error4 = ExampleError::with_source_and_description(Box::new(error3), String::from("Error description"));
 //! ```
+//!
+//! If making a public error struct, you can also add custom
+//! documentation through the `doc` attribute, as follows:
+//! ```
+//! use errormake::errormake;
+//!
+//! // The `DocumentedError` struct now has a documentation, which will
+//! // show up if `cargo doc` is run.
+//! errormake!(#[doc="Documentation comments"] pub DocumentedError);
+//! ```
+//!
 
 #[macro_export]
 /// The macro used to generate basic Error structs.
@@ -29,7 +39,6 @@
 /// documentation.
 macro_rules! errormake {
     ($structname:ident) => {
-        /// An error struct automatically created by `errormake`
         #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
         struct $structname<T: std::error::Error + 'static> {
             source: Option<Box<T>>,
@@ -38,8 +47,8 @@ macro_rules! errormake {
 
         errormake!(impl $structname);
     };
-    (pub $structname:ident) => {
-        /// An error struct automatically created by `errormake`
+    ($(#[$meta:meta])* pub $structname:ident) => {
+        $(#[$meta])*
         #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
         pub struct $structname<T: std::error::Error + 'static> {
             source: Option<Box<T>>,
@@ -131,7 +140,7 @@ macro_rules! errormake {
     };
 }
 
-errormake!(pub ExampleErrorStruct);
+errormake!(#[doc="An example of an error struct made by `errormake`"] pub ExampleErrorStruct);
 
 #[cfg(test)]
 mod tests {
