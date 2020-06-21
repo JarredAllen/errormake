@@ -29,7 +29,6 @@
 /// documentation.
 macro_rules! errormake {
     ($structname:ident) => {
-        /// An error struct automatically created by `errormake`
         #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
         struct $structname<T: std::error::Error + 'static> {
             source: Option<Box<T>>,
@@ -38,8 +37,8 @@ macro_rules! errormake {
 
         errormake!(impl $structname);
     };
-    (pub $structname:ident) => {
-        /// An error struct automatically created by `errormake`
+    ($(#[$meta:meta])* pub $structname:ident) => {
+        $(#[$meta])*
         #[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
         pub struct $structname<T: std::error::Error + 'static> {
             source: Option<Box<T>>,
@@ -131,7 +130,7 @@ macro_rules! errormake {
     };
 }
 
-errormake!(pub ExampleErrorStruct);
+errormake!(#[doc="An example of an error struct made by `errormake`"] pub ExampleErrorStruct);
 
 #[cfg(test)]
 mod tests {
