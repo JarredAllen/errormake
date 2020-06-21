@@ -5,8 +5,7 @@
 //! and may optionally contain a description and/or a source error. The
 //! resulting struct may be either public or private to the module.
 //!
-//! # Example
-//!
+//! Here is an example of using some of its functionality:
 //! ```
 //! use errormake::errormake;
 //!
@@ -21,6 +20,17 @@
 //! // Create an error with a source and a description
 //! let error4 = ExampleError::with_source_and_description(Box::new(error3), String::from("Error description"));
 //! ```
+//!
+//! If making a public error struct, you can also add custom
+//! documentation through the `doc` attribute, as follows:
+//! ```
+//! use errormake::errormake;
+//!
+//! // The `DocumentedError` struct now has a documentation, which will
+//! // show up if `cargo doc` is run.
+//! errormake!(#[doc="Documentation comments"] pub DocumentedError);
+//! ```
+//!
 
 #[macro_export]
 /// The macro used to generate basic Error structs.
