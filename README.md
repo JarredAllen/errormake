@@ -17,7 +17,7 @@ A macro for automatically creating Error structs in Rust
 To use in your rust crate, add this to your `Cargo.toml`:
 ```toml
 [dependencies]
-errormake = "0.1.1"
+errormake = "0.2.1"
 ```
 
 and add this in the module where you want to use it
