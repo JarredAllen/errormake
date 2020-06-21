@@ -108,6 +108,24 @@ macro_rules! errormake {
             }
         }
 
+        // TODO Make this compile (maybe move it to its own branch to
+        // save progress?)
+        // It's getting an error because, on any type T, From<T> is
+        // already implemented.
+        // I have a playground that I'm messing with an instantiation of
+        // it here:
+        // https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=33ac5223bd3e723b31d60d88d349e0dc
+        impl<T, U> std::convert::From<$structname<T>> for $structname<U>
+            where T: std::error::Error + std::convert::Into<U> + 'static, U: std::error::Error + 'static, (T, U): distinct::Distinct
+        {
+            fn from(orig: $structname<T>) -> $structname<U> {
+                $structname::with_optional_data(
+                    orig.source,
+                    orig.description,
+                )
+            }
+        }
+
         impl<T: std::error::Error + 'static> std::fmt::Display for $structname<T> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match &self.source {
