@@ -31,6 +31,16 @@
 //! errormake!(#[doc="Documentation comments"] pub DocumentedError);
 //! ```
 //!
+//! You can also convert the type of contained error into a dynamic
+//! Error object as follows:
+//! ```
+//! use std::error::Error;
+//! use errormake::errormake;
+//! errormake!(ExampleError);
+//!
+//! let error: ExampleError<dyn Error + 'static> = ExampleError::new().into_dynamic();
+//! ```
+//!
 
 #[macro_export]
 /// The macro used to generate basic Error structs.
@@ -60,6 +70,10 @@ macro_rules! errormake {
     (impl $structname:ident) => {
         #[allow(dead_code)]
         impl $structname<std::convert::Infallible> {
+            // Using the never type would make more sense, one that type
+            // becomes stable. Until then, we have to continue using
+            // Infalible.
+
             /// Instantiate with no source or description
             pub fn new() -> $structname<std::convert::Infallible> {
                 $structname {
@@ -113,8 +127,9 @@ macro_rules! errormake {
 
         #[allow(dead_code)]
         impl<T: std::error::Error + 'static> $structname<T> {
-            /// Convert source to a boxed dynamic error object
-            pub fn to_dynamic(self) -> $structname<dyn std::error::Error + 'static> {
+            /// Convert the source error into a dynamic Error object, if
+            /// it exists
+            pub fn into_dynamic(self) -> $structname<dyn std::error::Error + 'static> {
                 $structname {
                     source: self.source.map(|source| source as Box<dyn std::error::Error + 'static>),
                     description: self.description,
@@ -216,7 +231,7 @@ mod tests {
     fn test_dynamic() {
         // Test two ways of making the type parameter dynamic
         let error = TestingError::new();
-        let error = TestingError::with_source(error).to_dynamic();
+        let error = TestingError::with_source(error).into_dynamic();
         assert!(error.source().is_some());
         let box_error: Box<dyn Error + 'static> = Box::new(error);
         let error = TestingError::with_optional_data(Some(box_error), None);
